@@ -1,0 +1,42 @@
+project_name: travis-go-test
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+
+builds:
+  - main: main.go
+    binary: travis-go-test
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s
+      - -w
+      - -X github.com/inanme/travis-go-test/version.version={{.Env.GORELEASER_CURRENT_TAG}}
+      - -X github.com/inanme/travis-go-test/version.commit={{.Commit}}
+      - -X github.com/inanme/travis-go-test/version.date={{.Date}}
+      - -X github.com/inanme/travis-go-test/version.snapshot={{.IsSnapshot}}
+      - -X "github.com/inanme/travis-go-test/version.builtBy={{.Env.BUILT_BY}}"
+
+snapshot:
+  name_template: "{{ .Env.GORELEASER_CURRENT_TAG }}"
+
+release:
+  disable: true
+
+archives:
+  - id: default
+    builds:
+      - travis-go-test
+    name_template: '{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}'
+
+source:
+  name_template: '{{ .ProjectName }}-{{ .Tag }}'
+  format: tar.gz
